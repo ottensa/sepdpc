@@ -14,6 +14,7 @@ pyyaml = "^6.0.1"
 deepdiff = "^6.3.1"
 python-dotenv = "^1.0.0"
 adsepra = {path = "/Users/arne.ottens/devel/PycharmProjects/adsepra"}
+rich = "^13.5.2"
 
 
 [build-system]

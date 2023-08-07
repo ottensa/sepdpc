@@ -240,9 +240,12 @@ def _calculate_changes(entities1: List[Union[DomainStruct, ProductStruct]],
         ddiff = DeepDiff(d1, d2, exclude_paths='id', ignore_order=True)
         if ddiff:
             d1.update(d2)
-            updated.append(cls(**d1))
             if 'domain' in ddiff.affected_root_keys:
                 reassigned.append(cls(**d1))
+                if len(ddiff.affected_root_keys) > 1:
+                    updated.append(cls(**d1))
+            else:
+                updated.append(cls(**d1))
 
     return deleted, created, updated, reassigned
 
