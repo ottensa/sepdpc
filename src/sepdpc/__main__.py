@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import typer
@@ -99,7 +100,11 @@ def publish(host: HostOpt, user: UserOpt, token: TokenOpt, path: str):
     print('Published repository from:', path)
 
 
-if __name__ == "__main__":
+def main():
     # load dotenv
     load_dotenv(dotenv_path=config_path)
     app()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
