@@ -4,6 +4,9 @@
     <i align="center">Manage Starburst Enterprise Data Products in a local Repository</i>
 </p>
 
+### Disclaimer
+This is not part of the core Starburst product and is not covered by Starburst Enterprise support agreements. It is a community developed set of scripts to make your life easier when deploying to these cloud environments.
+
 ## Introduction
 This Python package is a CLI for managing Starburst Enterprise Data Products in a local repository.
 
