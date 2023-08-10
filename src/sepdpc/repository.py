@@ -180,7 +180,7 @@ def from_local(path: str) -> Repository:
         raise FileNotFoundError('The repository directory does not exist')
 
     domains = _load_domains_yaml(path)
-    products = [_load_product_definition(product_path) for product_path in path.iterdir() if product_path.is_dir()]
+    products = [_load_product_definition(product_path) for product_path in path.iterdir() if product_path.is_dir() and not product_path.startswith('.')]
 
     return Repository(domains=domains, products=products)
 
