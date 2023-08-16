@@ -13,14 +13,14 @@ This Python package is a CLI for managing Starburst Enterprise Data Products in 
 The motivation behind this project comes from the demand I see at customers to manage Starburst Enterprise Data Products in git.
 
 ## Installation
-Releases are available on PyPI. Install it using pip:
+Releases are not yet available on PyPI. Install it using pip:
 
 ```shell
 python -m pip install -U pip
-python -m pip install -U sepdpc
+python -m pip install -U pip install git+https://github.com/ottensa/sepdpc.git
 ```
 
-Alternatively you can download the source from GitHub and install it using Poetry:
+Alternatively you can download the source from GitHub and install it using Poetry: tbd
 
 ```shell
 git clone ...
