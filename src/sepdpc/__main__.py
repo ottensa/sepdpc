@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 import typer
-from adsepra import SepClient
+from adastra.client import SepClient
 from dotenv import set_key, load_dotenv
 from rich import print
 from rich.table import Table

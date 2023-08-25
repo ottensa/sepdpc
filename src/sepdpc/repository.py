@@ -2,20 +2,20 @@ from pathlib import Path
 from typing import Optional, List, Callable, Union, Any
 
 import yaml
-from adsepra import SepClient
-from adsepra.dataproducts import (
+from adastra.client import SepClient
+from adastra.sep.models import (
     Column,
     DefinitionProperties,
     Owner,
     Link,
     SampleQuery,
-    DataProductsApiClient,
     Domain,
     DataProduct,
     View,
     MaterializedView,
     Tag
 )
+from adastra.sep.services.data_product_service import DataProductService
 from deepdiff import DeepDiff
 from pydantic import BaseModel, Field, AliasChoices, field_validator
 
@@ -77,16 +77,18 @@ class Repository(BaseModel):
 
 def from_server(server_client: SepClient) -> Repository:
     """Laden der Domains und der Produkte von SEP und in die Repository Struktur bringen"""
-    dpc = DataProductsApiClient(client=server_client)
-    sep_domains = dpc.list_domains()
-    sep_products = dpc.list_data_products()
+    dpc = server_client.data_product_service()
+    dc = server_client.domain_service()
+
+    sep_domains = dc.list()
+    sep_products = dpc.list()
 
     domains = [DomainStruct(**domain.model_dump()) for domain in sep_domains]
     products = []
 
     for dp in sep_products:
-        tags = dpc.get_data_product_tags(dp.id)
-        samples = dpc.get_data_product_samples(dp.id)
+        tags = dpc.get_tags(dp.id)
+        samples = dpc.get_samples(dp.id)
         datasets = []
         for view in dp.views:
             datasets.append(
@@ -365,7 +367,7 @@ def _product_struct_to_data_product(product_struct: ProductStruct, domain_id: st
     return data_product
 
 
-def _upsert_data_product(dpc: DataProductsApiClient, product_struct: ProductStruct, domain_id: str,
+def _upsert_data_product(dpc: DataProductService, product_struct: ProductStruct, domain_id: str,
                          upsert: Callable[[DataProduct], DataProduct]):
     data_product = _product_struct_to_data_product(product_struct, domain_id)
 
@@ -373,13 +375,13 @@ def _upsert_data_product(dpc: DataProductsApiClient, product_struct: ProductStru
 
     if product_struct.tags:
         tags = [Tag(value=t) for t in product_struct.tags]
-        dpc.set_data_product_tags(data_product.id, tags)
+        dpc.set_tags(data_product.id, tags)
 
     if product_struct.samples:
         samples = [SampleQuery(name=s.name, query=s.query) for s in product_struct.samples]
-        dpc.set_data_product_samples(data_product.id, samples)
+        dpc.set_samples(data_product.id, samples)
 
-    dpc.publish_data_product(data_product.id)
+    dpc.publish(data_product.id)
 
 
 def publish(server_client: SepClient, repo: Repository):
@@ -390,35 +392,36 @@ def publish(server_client: SepClient, repo: Repository):
     # mapping von domain name auf domain id
     domain_mapping = dict([(domain.name, domain.id) for domain in remote_repo.domains])
 
-    dpc = DataProductsApiClient(client=server_client)
+    dpc = server_client.data_product_service()
+    dc = server_client.domain_service()
 
     delta = diff(remote_repo, repo)
     # 1. delete products
     for dp in delta.deleted_products:
-        dpc.delete_data_product(dp.id)
+        dpc.delete(dp.id)
 
     # 2. create domains
     for d in delta.created_domains:
         domain_to_create = Domain(name=d.name, description=d.desc, schemaLocation=d.path)
-        new_domain = dpc.create_domain(domain_to_create)
+        new_domain = dc.create(domain_to_create)
         domain_mapping[new_domain.name] = new_domain.id
 
     # 3. reassign products
     for dp in delta.reassigned_products:
-        dpc.reassign_data_product_domain(dp.id, domain_mapping[dp.domain])
+        dpc.reassign(dp.id, domain_mapping[dp.domain])
 
     # 4. delete domains
     for d in delta.deleted_domains:
-        dpc.delete_domain(d.id)
+        dc.delete(d.id)
 
     # 5. update products
     for dp in delta.updated_products:
-        _upsert_data_product(dpc, dp, domain_mapping[dp.domain], dpc.update_data_product)
+        _upsert_data_product(dpc, dp, domain_mapping[dp.domain], dpc.update)
 
     # 6. update domains
     for d in delta.updated_domains:
-        dpc.update_domain(Domain(id=d.id, name=d.name, description=d.desc, schemaLocation=d.path))
+        dc.update(Domain(id=d.id, name=d.name, description=d.desc, schemaLocation=d.path))
 
     # 7. create products
     for dp in delta.created_products:
-        _upsert_data_product(dpc, dp, domain_mapping[dp.domain], dpc.create_data_product)
+        _upsert_data_product(dpc, dp, domain_mapping[dp.domain], dpc.create)
