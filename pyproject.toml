@@ -14,7 +14,7 @@ pyyaml = "^6.0.1"
 deepdiff = "^6.3.1"
 python-dotenv = "^1.0.0"
 rich = "^13.5.2"
-ad-astra = {git = "https://github.com/ottensa/ad-astra.git"}
+adastra = {git = "https://github.com/ottensa/adastra.git"}
 
 [tool.poetry.scripts]
 sepdpc = 'sepdpc.__main__:main'
