@@ -358,8 +358,7 @@ def _product_struct_to_data_product(product_struct: ProductStruct, domain_id: st
                                                 description=ds.summary,
                                                 definitionQuery=ds.query,
                                                 columns=ds.columns,
-                                                refresh_interval=ds.materialization.refresh_interval,
-                                                incremental_columns=ds.materialization.incremental_column))
+                                                definitionProperties=ds.materialization))
 
     data_product.views = dp_view if dp_view else None
     data_product.materializedViews = dp_mat_view if dp_mat_view else None
